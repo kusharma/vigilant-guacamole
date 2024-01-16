@@ -10,28 +10,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.x
+          python-version: '3.9'
 
       - name: Install dependencies
         run: pip install --quiet --requirement requirements.txt
 
-      - name: Lint code
-        run: |
-          flake8 --ignore=E501,E231 *.py
-          pylint --disable=C0301 --disable=C0326 *.py
+      - name: Lint with flake8
+        run: flake8 --ignore=E501,E231 *.py
+
+      - name: Lint with pylint
+        run: pylint --disable=C0301 --disable=C0326 *.py
 
       - name: Run unit tests
         run: python -m unittest --verbose --failfast
 
       - name: Set up GCloud
-        uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        uses: GoogleCloudPlatform/github-actions/setup-gcloud@latest
         with:
-          version: '274.0.1'
+          version: 'latest'
           service_account_email: ${{ secrets.GCP_SERVICE_ACCT_EMAIL }}
           service_account_key: ${{ secrets.GCP_SERVICE_ACCT_KEY }}
 
@@ -41,8 +42,9 @@ jobs:
           gcloud auth configure-docker
           gcloud info
 
-      - name: Build and tag image
-        run: docker build -t "gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.APPLICATION_NAME }}:latest" .
+      - name: Build and tag Docker image
+        run: docker build -t "gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.APPLICATION_NAME }}:${{ github.run_number }}" .
 
-      - name: Push to GCP image registry
-        run: docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.APPLICATION_NAME }}:latest
+      - name: Push Docker image to GCP registry
+        run: docker push "gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.APPLICATION_NAME }}:${{ github.run_number }}"
+
