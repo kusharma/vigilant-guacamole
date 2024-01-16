@@ -2,7 +2,8 @@ name: Pipeline
 
 on: [push]
 env:
-  APPLICATION_NAME: app2
+  APPLICATION_NAME: app2,
+  ACTIONS_ALLOW_UNSECURE_COMMANDS: true
 jobs:
   lint:
     runs-on: ubuntu-latest
